@@ -6,7 +6,7 @@ import threading
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable, Optional
 
 from app.services.request_assessor import IntakeAssessment, LocalRequestAssessor
 
@@ -29,6 +29,8 @@ class RequestSession:
     assessment: IntakeAssessment
     status: str
     expires_at: float
+    complaint_id: Optional[str] = None
+    tracking_code: Optional[str] = field(default=None, repr=False)
     lock: threading.RLock = field(default_factory=threading.RLock, repr=False)
 
     def to_dict(self) -> dict[str, Any]:
@@ -98,12 +100,19 @@ class RequestWorkflow:
             self._touch_session(session)
             return session
 
-    def confirm(self, request_id: str) -> RequestSession:
+    def confirm(
+        self,
+        request_id: str,
+        *,
+        before_confirm: Optional[Callable[[RequestSession], None]] = None,
+    ) -> RequestSession:
         session = self._find(request_id)
         with session.lock:
             self._touch_session(session)
             if session.status != "ready_for_confirmation":
                 raise WorkflowStateError("Request details must be complete before confirmation.")
+            if before_confirm is not None:
+                before_confirm(session)
             session.status = "confirmed"
             return session
 

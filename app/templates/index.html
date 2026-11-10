@@ -21,6 +21,7 @@
       </a>
       <nav class="header-nav" aria-label="Main navigation">
         <a href="#how-it-works">How it works</a>
+        <a href="/complaints">Track a complaint</a>
         <a class="nav-cta" href="#start-request">Start a request <span aria-hidden="true">↗</span></a>
       </nav>
     </header>
@@ -116,6 +117,14 @@
           <p class="form-error" id="workflow-error" role="alert" hidden></p>
         </div>
         <p class="confirmation-note" id="confirmation-note" hidden>This request is confirmed locally; it has not been submitted to a public authority.</p>
+        <div class="complaint-registration" id="complaint-registration" hidden>
+          <p>Complaint ID: <strong id="complaint-id"></strong></p>
+          <p>Your private tracking code is saved in this browser. Keep it safe to access your complaints.</p>
+          <p>Private tracking code: <code id="tracking-code-display" tabindex="0"></code>
+            <button class="copy-code-button" id="copy-tracking-code" type="button">Copy code</button>
+          </p>
+          <a href="/complaints">View complaint dashboard</a>
+        </div>
       </section>
 
       <section class="how-section" id="how-it-works" aria-labelledby="how-heading">

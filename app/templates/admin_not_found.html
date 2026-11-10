@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Complaint not found.">
+    <title>Complaint not found — CivicFlow</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/complaints.css') }}">
+  </head>
+  <body>
+    <main class="dashboard-main">
+      <section class="tracking-code-panel">
+        <p class="eyebrow">NOT FOUND</p>
+        <h1>Complaint not found</h1>
+        <p>The requested complaint could not be found.</p>
+        <a href="{{ url_for('admin_pages.dashboard') }}">Return to complaints</a>
+      </section>
+    </main>
+  </body>
+</html>

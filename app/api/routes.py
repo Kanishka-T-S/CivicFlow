@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import re
+import sqlite3
 from pathlib import Path
 
 from flask import Blueprint, current_app, request
 
 from app.integrations.gnani_stt import SUPPORTED_EXTENSIONS, GnaniSTTError
+from app.services.complaint_repository import (
+    hash_tracking_code,
+    new_tracking_code,
+)
 from app.services.request_workflow import (
     RequestNotFoundError,
     RequestWorkflow,
@@ -20,10 +26,65 @@ _LOCAL_AUDIO_ERRORS = {
     "MAX_AUDIO_DURATION_EXCEEDED",
     "UNSUPPORTED_AUDIO_FORMAT",
 }
+_TRACKING_CODE_PATTERN = re.compile(r"^[A-Za-z0-9_-]{32,128}$")
+
+
+@api.after_request
+def prevent_sensitive_api_caching(response):
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 def _workflow() -> RequestWorkflow:
     return current_app.extensions["civicflow_workflow"]
+
+
+def _complaint_category(category: str, description: str) -> str:
+    normalized = description.casefold()
+    if any(
+        term in normalized
+        for term in ("streetlight", "street light", "தெரு விளக்கு", "விளக்கு")
+    ):
+        return "Street Light"
+    if any(term in normalized for term in ("electricity", "power outage", "மின்சாரம்")):
+        return "Electricity"
+    if any(term in normalized for term in ("drain", "sewage", "கழிவுநீர்")):
+        return "Drainage"
+    if category == "roads":
+        return "Road Damage"
+    if category == "water":
+        return "Water Supply"
+    if category == "waste":
+        return "Garbage Collection"
+    if category == "sanitation":
+        return "Public Sanitation"
+    if category == "utilities":
+        return "Electricity"
+    return "Other"
+
+
+def _confirmed_response(session, *, status: int = 200):
+    try:
+        complaint = current_app.extensions["civicflow_complaints"].get(
+            session.complaint_id
+        )
+    except sqlite3.Error:
+        current_app.logger.exception("Complaint retrieval failed.")
+        return _error("COMPLAINT_STORAGE_ERROR", "The complaint could not be loaded.", 503)
+    if complaint is None or session.tracking_code is None:
+        return _error("COMPLAINT_UNAVAILABLE", "The complaint could not be loaded.", 503)
+    return {
+        **session.to_dict(),
+        **complaint,
+        "status": session.status,
+        "workflow_status": session.status,
+        "complaint_status": complaint["status"],
+        "tracking_code": session.tracking_code,
+        "message": (
+            "Complaint registered successfully; it has not been submitted to a public "
+            "authority. Keep the private tracking code to view it later."
+        ),
+    }, status
 
 
 def _error(code: str, message: str, status: int):
@@ -96,13 +157,80 @@ def add_message(request_id: str):
 
 @api.post("/requests/<request_id>/confirm")
 def confirm_request(request_id: str):
+    workflow = _workflow()
     try:
-        session = _workflow().confirm(request_id)
+        current_session = workflow.get(request_id)
+    except RequestNotFoundError:
+        return _error("REQUEST_NOT_FOUND", "The request was not found or has expired.", 404)
+
+    if current_session.status == "confirmed" and current_session.complaint_id:
+        return _confirmed_response(current_session)
+
+    payload = request.get_json(silent=True) if request.is_json else {}
+    if payload is None:
+        payload = {}
+    if not isinstance(payload, dict):
+        return _error("INVALID_CONFIRMATION", "The request body must be a JSON object.", 400)
+    supplied_code = payload.get("tracking_code")
+    if supplied_code is not None and (
+        not isinstance(supplied_code, str)
+        or not _TRACKING_CODE_PATTERN.fullmatch(supplied_code)
+    ):
+        return _error("INVALID_TRACKING_CODE", "The tracking code is invalid.", 400)
+    if supplied_code:
+        try:
+            known_code = current_app.extensions["civicflow_complaints"].has_citizen_token(
+                hash_tracking_code(supplied_code)
+            )
+        except sqlite3.Error:
+            current_app.logger.exception("Complaint tracking-code lookup failed.")
+            return _error(
+                "COMPLAINT_STORAGE_ERROR",
+                "The complaint could not be saved. Try again.",
+                503,
+            )
+        if not known_code:
+            return _error(
+                "INVALID_TRACKING_CODE",
+                "The tracking code does not match an existing complaint.",
+                401,
+            )
+    tracking_code = supplied_code or new_tracking_code()
+
+    def register_complaint(session) -> None:
+        details = session.assessment.details
+        if (
+            len(details["description"]) > 4000
+            or len(details["location"]) > 4000
+        ):
+            raise ValueError("Complaint description and location must be 4000 characters or fewer.")
+        complaint, _created = current_app.extensions["civicflow_complaints"].register(
+            source_request_id=request_id,
+            citizen_token_hash=hash_tracking_code(tracking_code),
+            category=_complaint_category(
+                session.assessment.category, details["description"]
+            ),
+            description=details["description"].strip(),
+            location=details["location"].strip(),
+        )
+        session.complaint_id = str(complaint["complaint_id"])
+        session.tracking_code = tracking_code
+
+    try:
+        session = workflow.confirm(request_id, before_confirm=register_complaint)
     except RequestNotFoundError:
         return _error("REQUEST_NOT_FOUND", "The request was not found or has expired.", 404)
     except WorkflowStateError as exc:
+        try:
+            current_session = workflow.get(request_id)
+        except RequestNotFoundError:
+            return _error("REQUEST_NOT_FOUND", "The request was not found or has expired.", 404)
+        if current_session.status == "confirmed" and current_session.complaint_id:
+            return _confirmed_response(current_session)
         return _error("INVALID_WORKFLOW_STATE", str(exc), 409)
-    return {
-        **session.to_dict(),
-        "message": "Request confirmed locally; it has not been submitted to a public authority.",
-    }
+    except ValueError as exc:
+        return _error("INVALID_COMPLAINT_DETAILS", str(exc), 422)
+    except sqlite3.Error:
+        current_app.logger.exception("Complaint registration failed.")
+        return _error("COMPLAINT_STORAGE_ERROR", "The complaint could not be saved. Try again.", 503)
+    return _confirmed_response(session)

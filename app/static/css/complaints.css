@@ -1,0 +1,257 @@
+.dashboard-main {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 72px 0 96px;
+}
+
+.dashboard-intro {
+  max-width: 700px;
+  margin-bottom: 36px;
+}
+
+.dashboard-intro h1 {
+  margin: 12px 0;
+  font-family: Manrope, "Segoe UI", sans-serif;
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  letter-spacing: -0.05em;
+}
+
+.dashboard-intro > p:last-child,
+.tracking-code-panel > p,
+.complaint-detail p {
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+
+.tracking-code-panel,
+.complaint-detail,
+.complaint-list-item {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--white);
+}
+
+.tracking-code-panel {
+  max-width: 680px;
+  padding: 26px;
+}
+
+.tracking-code-panel h2,
+.dashboard-content h2,
+.complaint-detail h2 {
+  margin-top: 0;
+}
+
+.tracking-code-panel label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.tracking-code-controls {
+  display: flex;
+  gap: 12px;
+}
+
+.tracking-code-controls input {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.dashboard-content {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.4fr);
+  gap: 24px;
+  margin-top: 44px;
+}
+
+.complaint-list {
+  display: grid;
+  gap: 10px;
+}
+
+.complaint-list-item {
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.complaint-list-item:hover,
+.complaint-list-item:focus-visible {
+  border-color: var(--green);
+  outline: 2px solid var(--green-pale);
+}
+
+.complaint-list-item span,
+.complaint-history {
+  color: var(--ink-soft);
+}
+
+
+
+.complaint-detail {
+  padding: 24px;
+}
+
+.complaint-history {
+  display: grid;
+  gap: 12px;
+  padding-left: 22px;
+  line-height: 1.6;
+}
+
+.dashboard-message {
+  margin-bottom: 0;
+}
+
+.dashboard-message.is-error {
+  color: #a52c2c;
+}
+
+.dashboard-message.is-success {
+  color: var(--green-dark);
+}
+
+.admin-submit {
+  margin-top: 16px;
+}
+
+.tracking-code-panel form > input,
+.tracking-code-panel form > select,
+.tracking-code-panel form > textarea,
+.tracking-code-panel input:not([type="hidden"]),
+.tracking-code-panel select,
+.tracking-code-panel textarea,
+.complaint-detail input,
+.complaint-detail select,
+.complaint-detail textarea {
+  width: 100%;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--ink);
+  background: var(--white);
+}
+
+.admin-filter-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 14px;
+  max-width: none;
+}
+
+.admin-filter-form .admin-submit {
+  margin: 0;
+}
+
+.admin-filter-form label,
+.complaint-detail label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.admin-filter-form input,
+.admin-filter-form select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.admin-table th {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.status-pill {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: var(--green-dark);
+  background: var(--green-pale);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.admin-history {
+  margin-top: 20px;
+}
+
+.admin-history .complaint-history li > span {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.admin-history .complaint-history p {
+  margin: 6px 0 0;
+}
+
+.link-button {
+  border: 0;
+  padding: 0;
+  color: var(--green-dark);
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.header-nav form {
+  display: inline;
+}
+
+@media (max-width: 720px) {
+  .dashboard-main {
+    width: min(100% - 28px, 560px);
+    padding-top: 44px;
+  }
+
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-filter-form,
+  .admin-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tracking-code-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

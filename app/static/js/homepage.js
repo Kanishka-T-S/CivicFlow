@@ -19,6 +19,10 @@
   const confirmButton = document.querySelector("#confirm-request");
   const workflowError = document.querySelector("#workflow-error");
   const confirmationNote = document.querySelector("#confirmation-note");
+  const complaintRegistration = document.querySelector("#complaint-registration");
+  const complaintId = document.querySelector("#complaint-id");
+  const trackingCodeDisplay = document.querySelector("#tracking-code-display");
+  const copyTrackingCode = document.querySelector("#copy-tracking-code");
 
   if (!form || !fileInput) return;
 
@@ -28,6 +32,10 @@
     needs_details: "More details needed",
     ready_for_confirmation: "Ready to confirm",
     confirmed: "Confirmed locally",
+    Pending: "Pending",
+    "In Progress": "In progress",
+    Resolved: "Resolved",
+    Rejected: "Rejected",
   };
   let requestId = null;
   let transcript = "";
@@ -63,29 +71,36 @@
 
   function renderRequest(result) {
     requestId = result.request_id;
+    const workflowStatus = result.workflow_status || result.status;
     transcriptText.textContent = transcript;
     requestCategory.textContent = formatCategory(result.category);
     requestSummary.textContent = result.summary || "Details pending";
     requestLocation.textContent = result.details?.location || "Needed";
 
-    const label = statusLabels[result.status] || "In progress";
+    const label = statusLabels[result.complaint_status] || statusLabels[result.status] || "In progress";
     requestStatus.textContent = label;
-    requestStatus.dataset.status = result.status || "";
+    requestStatus.dataset.status = result.complaint_status || result.status || "";
     resultPanel.hidden = false;
-    followupForm.hidden = result.status !== "needs_details";
-    confirmButton.hidden = result.status !== "ready_for_confirmation";
-    confirmationNote.hidden = result.status !== "confirmed";
+    followupForm.hidden = workflowStatus !== "needs_details";
+    confirmButton.hidden = workflowStatus !== "ready_for_confirmation";
+    confirmationNote.hidden = workflowStatus !== "confirmed";
+    complaintRegistration.hidden = workflowStatus !== "confirmed" || !result.complaint_id;
+    if (result.tracking_code) {
+      localStorage.setItem("civicflowTrackingCode", result.tracking_code);
+      trackingCodeDisplay.textContent = result.tracking_code;
+    }
+    if (result.complaint_id) complaintId.textContent = result.complaint_id;
     clearError(workflowError);
 
-    if (result.status === "needs_details") {
+    if (workflowStatus === "needs_details") {
       nextStepMessage.textContent = result.question || "Add the missing details to continue.";
-    } else if (result.status === "ready_for_confirmation") {
+    } else if (workflowStatus === "ready_for_confirmation") {
       nextStepMessage.textContent = "Review the transcript and details above, then confirm your request.";
     } else {
       nextStepMessage.textContent = "Your request has been confirmed locally.";
     }
 
-    if (result.status === "needs_details") {
+    if (workflowStatus === "needs_details") {
       followupText.focus();
     } else {
       resultPanel.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -201,6 +216,10 @@
     try {
       const response = await fetch(`/api/v1/requests/${encodeURIComponent(requestId)}/confirm`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tracking_code: localStorage.getItem("civicflowTrackingCode") || undefined,
+        }),
       });
       const result = await readResponse(response);
       renderRequest(result);
@@ -208,6 +227,18 @@
       showError(workflowError, error.message);
     } finally {
       confirmButton.disabled = false;
+    }
+  });
+
+  copyTrackingCode.addEventListener("click", async () => {
+    const trackingCode = localStorage.getItem("civicflowTrackingCode");
+    if (!trackingCode) return;
+    try {
+      await navigator.clipboard.writeText(trackingCode);
+      copyTrackingCode.textContent = "Copied";
+    } catch {
+      copyTrackingCode.textContent = "Select the code above";
+      trackingCodeDisplay.focus();
     }
   });
 })();

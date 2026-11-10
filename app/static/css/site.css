@@ -449,6 +449,44 @@ p {
   background: #e9eff8;
 }
 
+.request-status[data-status="In Progress"] {
+  color: #315588;
+  background: #e9eff8;
+}
+
+.request-status[data-status="Resolved"] {
+  color: #246145;
+  background: #e6f3e9;
+}
+
+.request-status[data-status="Rejected"] {
+  color: #8d3434;
+  background: #f9e8e8;
+}
+
+.complaint-registration {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+}
+
+.complaint-registration code {
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.copy-code-button {
+  margin-left: 8px;
+  border: 0;
+  color: var(--green-dark);
+  background: transparent;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .result-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

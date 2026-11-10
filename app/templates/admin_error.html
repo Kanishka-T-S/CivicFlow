@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Request error — CivicFlow</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/complaints.css') }}">
+  </head>
+  <body>
+    <main class="dashboard-main">
+      <section class="tracking-code-panel">
+        <p class="eyebrow">REQUEST COULD NOT BE COMPLETED</p>
+        <h1>Administrator request error</h1>
+        <p class="dashboard-message is-error" role="alert">{{ error }}</p>
+        <a href="{{ url_for('admin_pages.dashboard') }}">Return to complaints</a>
+      </section>
+    </main>
+  </body>
+</html>

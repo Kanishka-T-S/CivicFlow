@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Administrator sign in for CivicFlow complaint management.">
+    <title>Administrator login — CivicFlow</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/complaints.css') }}">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="CivicFlow home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span>Civic<span class="brand-light">Flow</span></span>
+      </a>
+    </header>
+    <main class="dashboard-main">
+      <section class="dashboard-intro">
+        <p class="eyebrow">STAFF ACCESS</p>
+        <h1>Administrator login</h1>
+      </section>
+      <section class="tracking-code-panel" aria-labelledby="admin-login-heading">
+        <h2 id="admin-login-heading">Sign in to manage complaints</h2>
+        {% if error %}
+          <p class="dashboard-message is-error" role="alert">{{ error }}</p>
+        {% endif %}
+        {% if not configuration_missing %}
+          <form action="{{ url_for('admin_pages.login_submit') }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" maxlength="128" autocomplete="username" required>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" maxlength="1024" autocomplete="current-password" required>
+            <button class="button button-dark admin-submit" type="submit">Sign in</button>
+          </form>
+        {% else %}
+          <p>Set the administrator username, password hash, and Flask secret key in your local environment to enable access.</p>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>

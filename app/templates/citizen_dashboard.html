@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Privately track CivicFlow complaints and status updates.">
+    <title>My complaints — CivicFlow</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/complaints.css') }}">
+    <script defer src="{{ url_for('static', filename='js/complaints.js') }}"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="CivicFlow home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span>Civic<span class="brand-light">Flow</span></span>
+      </a>
+      <nav class="header-nav" aria-label="Main navigation">
+        <a href="/">Create a request</a>
+      </nav>
+    </header>
+    <main class="dashboard-main">
+      <section class="dashboard-intro">
+        <p class="eyebrow">PRIVATE COMPLAINT TRACKING</p>
+        <h1>Your complaint dashboard</h1>
+        <p>Complaints are visible only with the private tracking code issued when you submitted one.</p>
+      </section>
+      <section class="tracking-code-panel" aria-labelledby="tracking-code-heading">
+        <h2 id="tracking-code-heading">Access your complaints</h2>
+        <form id="tracking-code-form">
+          <label for="tracking-code">Private tracking code</label>
+          <div class="tracking-code-controls">
+            <input id="tracking-code" name="tracking_code" type="password" autocomplete="off" required>
+            <button class="button button-dark" type="submit">Show complaints</button>
+          </div>
+        </form>
+        <button class="copy-code-button" id="forget-tracking-code" type="button">Forget code on this device</button>
+        <p class="dashboard-message" id="dashboard-message" role="status" hidden></p>
+      </section>
+      <section class="dashboard-content" aria-live="polite">
+        <div>
+          <h2>Submitted complaints</h2>
+          <div class="complaint-list" id="complaint-list"></div>
+        </div>
+        <article class="complaint-detail" id="complaint-detail" hidden>
+          <h2>Complaint details</h2>
+          <div id="complaint-fields"></div>
+          <h3>Status history</h3>
+          <ol class="complaint-history" id="complaint-history"></ol>
+        </article>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="/">Civic<span class="brand-light">Flow</span></a>
+      <p>Your tracking code is a private credential. Do not share it.</p>
+    </footer>
+  </body>
+</html>
