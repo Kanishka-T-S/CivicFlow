@@ -1,0 +1,4 @@
+# CivicFlow Flask API and Gnani Prisma STT integration.
+requests>=2.31
+python-dotenv>=1.0
+Flask>=3.0,<4
